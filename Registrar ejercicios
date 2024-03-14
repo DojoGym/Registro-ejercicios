@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Ejercicios</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 100%;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            margin-top: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="submit"] {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        .form-group input[type="submit"] {
+            background-color: #28a745; /* verde */
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .exercise-list {
+            list-style: none;
+            padding: 0;
+        }
+        .exercise-item {
+            background-color: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            padding: 10px;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+        .exercise-item:hover {
+            transform: translateY(-5px);
+        }
+        .delete-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 5px;
+            color: #ff0000;
+            transition: color 0.3s ease;
+        }
+        .delete-button:hover {
+            color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Registro de Ejercicios</h1>
+    <form id="exercise-form">
+        <div class="form-group">
+            <label for="exercise-name">Nombre del ejercicio:</label>
+            <input type="text" id="exercise-name" name="exercise-name" placeholder="Ejercicio" required>
+        </div>
+        <div class="form-group">
+            <label for="sets">Series:</label>
+            <input type="text" id="sets" name="sets" placeholder="Series">
+        </div>
+        <div class="form-group">
+            <label for="reps">Repeticiones:</label>
+            <input type="text" id="reps" name="reps" placeholder="Repeticiones">
+        </div>
+        <div class="form-group">
+            <input type="submit" value="Registrar Ejercicio">
+        </div>
+    </form>
+    <h2>Ejercicios Registrados</h2>
+    <ul id="exercises-list" class="exercise-list"></ul>
+</div>
+
+<script>
+    // Cargar ejercicios almacenados localmente al cargar la página
+    window.addEventListener('load', function() {
+        var savedExercises = JSON.parse(localStorage.getItem('exercises'));
+        if (savedExercises) {
+            savedExercises.forEach(function(exercise) {
+                addExerciseToList(exercise);
+            });
+        }
+    });
+
+    document.getElementById('exercise-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var exerciseName = document.getElementById('exercise-name').value;
+        var sets = document.getElementById('sets').value;
+        var reps = document.getElementById('reps').value;
+
+        // Crear un objeto ejercicio
+        var exercise = {
+            name: exerciseName,
+            sets: sets,
+            reps: reps
+        };
+
+        // Obtener la lista de ejercicios guardados
+        var savedExercises = JSON.parse(localStorage.getItem('exercises')) || [];
+        savedExercises.push(exercise);
+
+        // Guardar la lista de ejercicios actualizada en el almacenamiento local
+        localStorage.setItem('exercises', JSON.stringify(savedExercises));
+
+        // Añadir el ejercicio a la lista
+        addExerciseToList(exercise);
+
+        // Limpiar el formulario
+        document.getElementById('exercise-form').reset();
+    });
+
+    function addExerciseToList(exercise) {
+        var exerciseItem = document.createElement('li');
+        exerciseItem.className = 'exercise-item';
+        
+        var nameSpan = document.createElement('span');
+        nameSpan.textContent = exercise.name;
+        exerciseItem.appendChild(nameSpan);
+
+        var exerciseDetails = document.createElement('div');
+        exerciseDetails.style.fontSize = '14px';
+        exerciseDetails.style.marginTop = '5px';
+        exerciseDetails.textContent = 'Series: ' + (exercise.sets || '-') + ', Repeticiones: ' + (exercise.reps || '-');
+        exerciseItem.appendChild(exerciseDetails);
+
+        // Botón para eliminar
+        var deleteButton = document.createElement('button');
+        deleteButton.className = 'delete-button';
+        deleteButton.innerHTML = '&#10006;'; // Símbolo para eliminar
+        deleteButton.onclick = function() {
+            if (confirm('¿Seguro que quieres eliminar este ejercicio?')) {
+                exerciseItem.remove();
+                // Eliminar el ejercicio de la lista y guardar la lista actualizada en el almacenamiento local
+                var savedExercises = JSON.parse(localStorage.getItem('exercises')) || [];
+                var index = savedExercises.findIndex(function(ex) {
+                    return ex.name === exercise.name && ex.sets === exercise.sets && ex.reps === exercise.reps;
+                });
+                if (index !== -1) {
+                    savedExercises.splice(index, 1);
+                    localStorage.setItem('exercises', JSON.stringify(savedExercises));
+                }
+            }
+        };
+        exerciseItem.appendChild(deleteButton);
+
+        document.getElementById('exercises-list').appendChild(exerciseItem);
+    }
+</script>
+
+</body>
+</html>
